@@ -37,10 +37,8 @@ export default function Game({
     oscillator.connect(gain);
     gain.connect(ctx.destination);
 
-    // Base volume (soft)
     gain.gain.value = 0.05;
 
-    // 🎯 CORRECT → BUBBLE POP SOUND (UPDATED)
     if (type === "correct") {
       oscillator.frequency.setValueAtTime(900, ctx.currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(
@@ -57,13 +55,11 @@ export default function Game({
       );
     }
 
-    // WRONG → soft low bump
     if (type === "wrong") {
       oscillator.frequency.value = 200;
       oscillator.type = "sine";
     }
 
-    // GAME OVER → deeper tone
     if (type === "gameover") {
       oscillator.frequency.value = 120;
       oscillator.type = "triangle";
@@ -149,9 +145,11 @@ export default function Game({
 
       <hr className="border-t-2 border-white/30 w-1/2 mx-auto my-4" />
 
+      {/* ✅ FIXED HINT DESIGN (iOS SAFE) */}
       {currentQ.question && (
         <p className="mb-4 mt-2 px-4 py-2 text-md font-bold text-white
-                       backdrop-blur-md border border-white/20 uppercase rounded-lg">
+                       bg-black/40 backdrop-blur-md border border-white/30
+                       uppercase rounded-lg shadow-md">
           {currentQ.question}
         </p>
       )}
