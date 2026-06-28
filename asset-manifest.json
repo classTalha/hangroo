@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/hangroo/static/css/main.a85d7706.css",
-    "main.js": "/hangroo/static/js/main.6744d697.js",
+    "main.css": "/hangroo/static/css/main.5598bcd8.css",
+    "main.js": "/hangroo/static/js/main.d5240638.js",
     "static/js/453.75a58ca1.chunk.js": "/hangroo/static/js/453.75a58ca1.chunk.js",
     "index.html": "/hangroo/index.html",
-    "main.a85d7706.css.map": "/hangroo/static/css/main.a85d7706.css.map",
-    "main.6744d697.js.map": "/hangroo/static/js/main.6744d697.js.map",
+    "main.5598bcd8.css.map": "/hangroo/static/css/main.5598bcd8.css.map",
+    "main.d5240638.js.map": "/hangroo/static/js/main.d5240638.js.map",
     "453.75a58ca1.chunk.js.map": "/hangroo/static/js/453.75a58ca1.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.a85d7706.css",
-    "static/js/main.6744d697.js"
+    "static/css/main.5598bcd8.css",
+    "static/js/main.d5240638.js"
   ]
 }
