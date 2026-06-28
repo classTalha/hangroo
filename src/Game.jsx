@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import questions from "./questions.json";
 import Word from "./Word";
 import Keyboard from "./Keyboard";
@@ -15,21 +15,70 @@ export default function Game({
   const [roundOver, setRoundOver] = useState(false);
   const [isWin, setIsWin] = useState(false);
 
-  // Sounds
-  const correctSound = useRef(
-    new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
-  );
-  const wrongSound = useRef(
-    new Audio("https://www.soundjay.com/buttons/sounds/button-10.mp3")
-  );
-  const gameOverSound = useRef(
-    new Audio("https://www.soundjay.com/misc/sounds/fail-buzzer-01.mp3")
-  );
+  // 🎧 AUDIO ENGINE (Web Audio API)
+  const audioCtxRef = { current: null };
 
-  const playSound = (audioRef) => {
-    if (isMuted || !audioRef.current) return;
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => {});
+  const initAudio = () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext ||
+        window.webkitAudioContext)();
+    }
+    return audioCtxRef.current;
+  };
+
+  const playTone = (type) => {
+    if (isMuted) return;
+
+    const ctx = initAudio();
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    // Base volume (soft)
+    gain.gain.value = 0.05;
+
+    // 🎯 CORRECT → BUBBLE POP SOUND (UPDATED)
+    if (type === "correct") {
+      oscillator.frequency.setValueAtTime(900, ctx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        200,
+        ctx.currentTime + 0.12
+      );
+
+      oscillator.type = "triangle";
+
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + 0.12
+      );
+    }
+
+    // WRONG → soft low bump
+    if (type === "wrong") {
+      oscillator.frequency.value = 200;
+      oscillator.type = "sine";
+    }
+
+    // GAME OVER → deeper tone
+    if (type === "gameover") {
+      oscillator.frequency.value = 120;
+      oscillator.type = "triangle";
+    }
+
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.2);
+  };
+
+  const playSound = (type) => {
+    try {
+      playTone(type);
+    } catch (err) {
+      console.log("Audio error:", err);
+    }
   };
 
   const pickRandomQuestion = () => {
@@ -40,12 +89,10 @@ export default function Game({
     setIsWin(false);
   };
 
-  // On first load
   useEffect(() => {
     pickRandomQuestion();
   }, []);
 
-  // On restart
   useEffect(() => {
     pickRandomQuestion();
   }, [restartSignal]);
@@ -58,19 +105,18 @@ export default function Game({
 
     if (!currentQ.answer.includes(letter)) {
       onLoseLife();
-      playSound(wrongSound);
+      playSound("wrong");
 
       if (totalLives - 1 <= 0) {
         setRoundOver(true);
         setIsWin(false);
-        playSound(gameOverSound);
+        playSound("gameover");
         return;
       }
     } else {
-      playSound(correctSound);
+      playSound("correct");
     }
 
-    // Check win
     const allGuessed = currentQ.answer
       .split("")
       .filter((l) => l !== " ")
@@ -83,7 +129,6 @@ export default function Game({
     }
   };
 
-  // Auto next round
   useEffect(() => {
     if (roundOver && isWin) {
       const timer = setTimeout(() => {
@@ -96,17 +141,14 @@ export default function Game({
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 w-full max-w-3xl text-center shadow-lg flex flex-col items-center">
 
-      {/* Keyboard */}
       {!roundOver && currentQ.answer && (
         <div className="w-full mb-4">
           <Keyboard guessed={guessed} onGuess={handleGuess} />
         </div>
       )}
 
-      {/* Divider */}
       <hr className="border-t-2 border-white/30 w-1/2 mx-auto my-4" />
 
-      {/* Question */}
       {currentQ.question && (
         <p className="mb-4 mt-2 px-4 py-2 text-md font-bold text-white
                        backdrop-blur-md border border-white/20 uppercase rounded-lg">
@@ -114,10 +156,8 @@ export default function Game({
         </p>
       )}
 
-      {/* Word blocks */}
       <Word answer={currentQ.answer} guessed={guessed} />
 
-      {/* Round result */}
       {roundOver && isWin && (
         <p className="text-green-400 mt-4 font-bold">
           🎉 Correct! Next round starting...
